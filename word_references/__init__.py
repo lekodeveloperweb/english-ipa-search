@@ -5,7 +5,8 @@ from time import sleep
 
 WORD_REFERENCE = "https://www.wordreference.com/definition/"
 
-class WordReference:
+
+class WordReferences:
 
     def __init__(self, input_term, source=None):
         if input_term is None or input_term == "":
@@ -21,13 +22,11 @@ class WordReference:
 
         self.source = source
 
-    def find(self,s, ch):
-        return [i for i, ltr in enumerate(s) if ltr == ch]
-
     def _get_by_url(self, url):
         response = get(url)
         if response.status_code != 200:
-            raise Exception(f"Error on get page content {response.status_code}")
+            raise Exception(
+                f"Error on get page content {response.status_code}")
 
         return response
 
@@ -53,7 +52,7 @@ class WordReference:
         print(phrase)
 
     def extract_pronunciation(self):
-        response = { 'text':  self.source }
+        response = {'text':  self.source}
         for word in self.words:
             url_request = "{}{}".format(WORD_REFERENCE, word)
             print(f"URL for search {url_request}\n")
@@ -65,4 +64,3 @@ class WordReference:
             sleep(1.5)
 
         return self._pronunciations
-

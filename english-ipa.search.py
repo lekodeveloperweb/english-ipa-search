@@ -1,8 +1,8 @@
-from word_references import WordReference
+from word_references import WordReferences
 
 prompt_input = input("Enter key for search: \n")
 
-service = WordReference(prompt_input)
+service = WordReferences(prompt_input)
 service.extract_pronunciation()
 
 print("Pronunciation: \n")
