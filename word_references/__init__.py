@@ -6,6 +6,22 @@ from time import sleep
 WORD_REFERENCE = "https://www.wordreference.com/definition/"
 
 
+class Pronunciation(object):
+
+    def __init__(self, pronunciation=None, type_pronun=None):
+        self.type_pronun = type_pronun
+        self.pronunciation = pronunciation
+
+
+class WordReferencesModel(object):
+
+    def __init__(self):
+        self.word = ""
+        self.audios = []
+        self.pronunciation = None
+        self.sentences = []
+
+
 class WordReferences:
 
     def __init__(self, input_term, source=None):
@@ -15,6 +31,7 @@ class WordReferences:
         terms = input_term.split(" ")
         self.words = []
         self._pronunciations = []
+        self._html_soup = None
         for term in terms:
             word = trim(term)
             if(word != None and word != ""):
@@ -31,8 +48,8 @@ class WordReferences:
         return response
 
     def _extract_from_html(self, content):
-        html_soup = BeautifulSoup(content, "html.parser")
-        isp = html_soup.find("div", class_="pwrapper")
+        self._html_soup = BeautifulSoup(content, "html.parser")
+        isp = self._html_soup.find("div", class_="pwrapper")
         tag_pron = isp.find("span", class_="pronWR")
         if tag_pron is None:
             return "(No UK ISP)"
@@ -48,7 +65,7 @@ class WordReferences:
     def print_formatted(self):
         phrase = ""
         for index in range(len(self.words)):
-            phrase += self._pronunciations[index] + " "
+            phrase += self._pronunciations[index].pronunciation.pronunciation + " "
         print(phrase)
 
     def extract_pronunciation(self):
@@ -59,8 +76,19 @@ class WordReferences:
             if(self.source is None):
                 response = self._get_by_url(url_request)
 
+            model = WordReferencesModel()
             pronunciation = self._extract_from_html(response.text)
-            self._pronunciations.append(pronunciation)
+
+            h3_tag = self._html_soup.find("h3", class_="headerWord")
+            audios = self._html_soup.findAll("audio")
+            for audio in audios:
+                source = audio.source
+                audio_url = source.get("src")
+                model.audios.append(audio_url)
+            model.word = h3_tag.text
+
+            model.pronunciation = Pronunciation(pronunciation, "all")
+            self._pronunciations.append(model)
             sleep(1.5)
 
         return self._pronunciations
