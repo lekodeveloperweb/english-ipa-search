@@ -1,94 +1,69 @@
 from requests import get
 from bs4 import BeautifulSoup
-from utils import find, trim
+from utils import find, trim, validate_url
 from time import sleep
+from .model import PronunciationModel, WordReferencesModel
 
-WORD_REFERENCE = "https://www.wordreference.com/definition/"
-
-
-class Pronunciation(object):
-
-    def __init__(self, pronunciation=None, type_pronun=None):
-        self.type_pronun = type_pronun
-        self.pronunciation = pronunciation
-
-
-class WordReferencesModel(object):
-
-    def __init__(self):
-        self.word = ""
-        self.audios = []
-        self.pronunciation = None
-        self.sentences = []
+WORD_REFERENCE = "https://www.wordreference.com/"
+WORD_REFERENCE_DEFINITION = f"{WORD_REFERENCE}definition/"
+WORD_REFERENCE_SYNONYMS = f"{WORD_REFERENCE}synonyms/"
+WORD_REFERENCE_USAGE = f"{WORD_REFERENCE}EnglishUsage/"
+WORD_REFERENCE_COLLOCATIONS = f"{WORD_REFERENCE}EnglishCollocations/"
+WORD_REFERENCE_CONJUG = f"{WORD_REFERENCE}conj/enverbs.aspx?v="
 
 
 class WordReferences:
 
-    def __init__(self, input_term, source=None):
-        if input_term is None or input_term == "":
-            raise Exception("term for search is required")
+    def __init__(self, words, source=None):
+        self._selected_search_type = self.get_search_types()["DEFINITION"]
+        self._words = words.split(" ")
+        if len(self._words) == 1:
+            url_source = self._get_url_source(self._selected_search_type)
+            print(url_source)
+            self._create_bs4_instance(url_source + self._words[0])
 
-        terms = input_term.split(" ")
-        self.words = []
-        self._pronunciations = []
-        self._html_soup = None
-        for term in terms:
-            word = trim(term)
-            if(word != None and word != ""):
-                self.words.append(word)
+    def get_search_types(self):
+        return {
+            "DEFINITION": 1,
+            "SYNONYMS": 2,
+            "USAGE": 3,
+            "COLLOCATIONS": 4,
+            "CONJUG": 5,
+        }
 
-        self.source = source
+    def _get_url_source(self, key):
+        sources = {
+            1: WORD_REFERENCE_DEFINITION,
+            2: WORD_REFERENCE_SYNONYMS,
+            3: WORD_REFERENCE_USAGE,
+            4: WORD_REFERENCE_COLLOCATIONS,
+            5: WORD_REFERENCE_CONJUG,
+        }
+        return sources[key]
 
-    def _get_by_url(self, url):
+    def set_search_type(self, search_type):
+        types = self.get_search_types()
+        search = types[int(search_type)]
+        if search == None:
+            print(f"invalid type {search_type}")
+            exit(1)
+        self._selected_search_type = search
+
+    def _get_content_from_web(self, url):
         response = get(url)
         if response.status_code != 200:
-            raise Exception(
-                f"Error on get page content {response.status_code}")
-
+            raise Exception(f"Error on get resource from web {url}")
         return response
 
-    def _extract_from_html(self, content):
-        self._html_soup = BeautifulSoup(content, "html.parser")
-        isp = self._html_soup.find("div", class_="pwrapper")
-        tag_pron = isp.find("span", class_="pronWR")
-        if tag_pron is None:
-            return "(No UK ISP)"
-        pronun_values = tag_pron.text
-        indexs = find(pronun_values, "/")
+    def _create_bs4_instance(self, source):
+        is_url = validate_url(source)
+        if is_url == True:
+            content = self._get_content_from_web(source)
+            source = content.text
 
-        if len(indexs) == 0:
-            print("Pronunciation ISP not found")
-            exit()
-        # 36 length to phrase "UK and possibly other pronunciations"
-        return pronun_values[36:]
-
-    def print_formatted(self):
-        phrase = ""
-        for index in range(len(self.words)):
-            phrase += self._pronunciations[index].pronunciation.pronunciation + " "
-        print(phrase)
+        self.html = BeautifulSoup(source, "html.parser")
 
     def extract_pronunciation(self):
-        response = {'text':  self.source}
-        for word in self.words:
-            url_request = "{}{}".format(WORD_REFERENCE, word)
-            print(f"URL for search {url_request}\n")
-            if(self.source is None):
-                response = self._get_by_url(url_request)
-
-            model = WordReferencesModel()
-            pronunciation = self._extract_from_html(response.text)
-
-            h3_tag = self._html_soup.find("h3", class_="headerWord")
-            audios = self._html_soup.findAll("audio")
-            for audio in audios:
-                source = audio.source
-                audio_url = source.get("src")
-                model.audios.append(audio_url)
-            model.word = h3_tag.text
-
-            model.pronunciation = Pronunciation(pronunciation, "all")
-            self._pronunciations.append(model)
-            sleep(1.5)
-
-        return self._pronunciations
+        print("Pronunciation:\n")
+        print(self._words)
+        print(self._selected_search_type)
