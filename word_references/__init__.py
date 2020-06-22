@@ -15,29 +15,46 @@ WORD_REFERENCE_CONJUG = f"{WORD_REFERENCE}conj/enverbs.aspx?v="
 class WordReferences:
 
     def __init__(self, words, source=None):
-        self._selected_search_type = self.get_search_types()["DEFINITION"]
-        self._words = words.split(" ")
-        if len(self._words) == 1:
-            url_source = self._get_url_source(self._selected_search_type)
-            print(url_source)
-            self._create_bs4_instance(url_source + self._words[0])
+        if words == None or len(words) == 0:
+            raise AttributeError("Property [words] is required")
+
+        self._words = []
+        for w in words.split(" "):
+            if trim(w) != None:
+                self._words.append(w)
 
     def get_search_types(self):
         return {
-            "DEFINITION": 1,
-            "SYNONYMS": 2,
-            "USAGE": 3,
-            "COLLOCATIONS": 4,
-            "CONJUG": 5,
+            1: "DEFINITION",
+            2: "SYNONYMS",
+            3: "USAGE",
+            4: "COLLOCATIONS",
+            5: "CONJUG",
         }
+
+    def print_option(self):
+        types = self.get_search_types()
+        print("\nSelect an options:")
+        for t in types:
+            print(f"\t {t} for {types[t]}")
 
     def _get_url_source(self, key):
         sources = {
-            1: WORD_REFERENCE_DEFINITION,
-            2: WORD_REFERENCE_SYNONYMS,
-            3: WORD_REFERENCE_USAGE,
-            4: WORD_REFERENCE_COLLOCATIONS,
-            5: WORD_REFERENCE_CONJUG,
+            "DEFINITION": WORD_REFERENCE_DEFINITION,
+            "SYNONYMS": WORD_REFERENCE_SYNONYMS,
+            "USAGE": WORD_REFERENCE_USAGE,
+            "COLLOCATIONS": WORD_REFERENCE_COLLOCATIONS,
+            "CONJUG": WORD_REFERENCE_CONJUG,
+        }
+        return sources[key]
+
+    def _get_function_by_type(self, key):
+        sources = {
+            "DEFINITION": self._extract_definition,
+            "SYNONYMS": self._extract_definition,
+            "USAGE": self._extract_definition,
+            "COLLOCATIONS": self._extract_definition,
+            "CONJUG": self._extract_definition,
         }
         return sources[key]
 
@@ -63,7 +80,39 @@ class WordReferences:
 
         self.html = BeautifulSoup(source, "html.parser")
 
-    def extract_pronunciation(self):
-        print("Pronunciation:\n")
-        print(self._words)
-        print(self._selected_search_type)
+    def _extract_definition(self):
+        isp = self.html.find("div", class_="pwrapper")
+        tag_pron = isp.find("span", class_="pronWR")
+        if tag_pron is None:
+            return "(No UK ISP)"
+        pronun_values = tag_pron.text
+        indexs = find(pronun_values, "/")
+
+        if len(indexs) == 0:
+            print("Pronunciation ISP not found")
+            exit()
+        # 36 length to phrase "UK and possibly other pronunciations"
+        return pronun_values[36:]
+
+    def _extract_by_type(self):
+        function = self._get_function_by_type(self._selected_search_type)
+        print(f"selected function {function}")
+        return function()
+
+    def extract_pronunciation(self, search_type):
+        if search_type == None:
+            raise AttributeError("[search_type] is required")
+
+        search_type = int(search_type)
+        if search_type < 1 or search_type > 5:
+            raise AttributeError("Invalid option")
+
+        self._selected_search_type = self.get_search_types()[search_type]
+        print(f"attr {self._selected_search_type}")
+
+        if len(self._words) == 1:
+            url_source = self._get_url_source(self._selected_search_type)
+            self._create_bs4_instance(url_source + self._words[0])
+            pronunciation = self._extract_by_type()
+            print("Pronunciation:")
+            print(pronunciation)
