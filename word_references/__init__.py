@@ -80,6 +80,17 @@ class WordReferences:
 
         self.html = BeautifulSoup(source, "html.parser")
 
+    def _extract_types(self, text):
+        if "strong" not in text:
+            return [PronunciationModel(text)]
+        text_split = text.split(",")
+        pronounces = []
+        for word in text_split:
+            splits = word.split(":")
+            pronounces.append(PronunciationModel(
+                splits[1].strip(), splits[0].strip()))
+        return pronounces
+
     def _extract_definition(self):
         isp = self.html.find("div", class_="pwrapper")
         tag_pron = isp.find("span", class_="pronWR")
@@ -92,11 +103,10 @@ class WordReferences:
             print("Pronunciation ISP not found")
             exit()
         # 36 length to phrase "UK and possibly other pronunciations"
-        return pronun_values[36:]
+        return self._extract_types(pronun_values[36:])
 
     def _extract_by_type(self):
         function = self._get_function_by_type(self._selected_search_type)
-        print(f"selected function {function}")
         return function()
 
     def extract_pronunciation(self, search_type):
@@ -108,11 +118,9 @@ class WordReferences:
             raise AttributeError("Invalid option")
 
         self._selected_search_type = self.get_search_types()[search_type]
-        print(f"attr {self._selected_search_type}")
 
         if len(self._words) == 1:
             url_source = self._get_url_source(self._selected_search_type)
             self._create_bs4_instance(url_source + self._words[0])
             pronunciation = self._extract_by_type()
-            print("Pronunciation:")
-            print(pronunciation)
+            return pronunciation
