@@ -80,18 +80,31 @@ class WordReferences:
 
         self.html = BeautifulSoup(source, "html.parser")
 
-    def _extract_types(self, text):
+    def _extract_only_ipa_pronunciation(self, pronunciation):
+        prons = pronunciation.split(" ")
+        if len(prons) > 1:
+            indexes = find(pronunciation, '/')
+            new_value = pronunciation[indexes[0]:indexes[1] + 1]
+            pronunciation = new_value.strip()
+        return pronunciation
+
+    def _extract_types(self, text, term):
         if "strong" not in text:
-            return [PronunciationModel(text)]
+            return [PronunciationModel(
+                self._extract_only_ipa_pronunciation(text), term
+            )]
         text_split = text.split(",")
         pronounces = []
         for word in text_split:
             splits = word.split(":")
-            pronounces.append(PronunciationModel(
-                splits[1].strip(), splits[0].strip()))
+            w_type = splits[0].strip()
+            w_pron = self._extract_only_ipa_pronunciation(splits[1].strip())
+            pronounces.append(PronunciationModel(w_pron, term, w_type))
+
         return pronounces
 
     def _extract_definition(self):
+        term = self.html.find("h3", class_="headerWord")
         isp = self.html.find("div", class_="pwrapper")
         tag_pron = isp.find("span", class_="pronWR")
         if tag_pron is None:
@@ -103,15 +116,25 @@ class WordReferences:
             print("Pronunciation ISP not found")
             exit()
         # 36 length to phrase "UK and possibly other pronunciations"
-        return self._extract_types(pronun_values[36:])
+        return self._extract_types(pronun_values[36:], term.text)
 
     def _extract_by_type(self):
         function = self._get_function_by_type(self._selected_search_type)
         return function()
 
+    def _extract_single_word(self, word):
+        url_source = self._get_url_source(self._selected_search_type)
+        self._create_bs4_instance(url_source + word)
+        pronunciation = self._extract_by_type()
+        return pronunciation
+
     def extract_pronunciation(self, search_type):
         if search_type == None:
             raise AttributeError("[search_type] is required")
+
+        if search_type != "1":
+            search_type = 1
+            print("Only DEFINITION is implemented, change for it")
 
         search_type = int(search_type)
         if search_type < 1 or search_type > 5:
@@ -119,8 +142,19 @@ class WordReferences:
 
         self._selected_search_type = self.get_search_types()[search_type]
 
-        if len(self._words) == 1:
-            url_source = self._get_url_source(self._selected_search_type)
-            self._create_bs4_instance(url_source + self._words[0])
-            pronunciation = self._extract_by_type()
-            return pronunciation
+        print("extracting, please wait...")
+        if len(self._words) == "1":
+            print(f"\nshowing: {self._selected_search_type}\n")
+            return self._extract_single_word(self._words[0])
+
+        pronunciations = []
+        for word in self._words:
+            extracted = self._extract_single_word(word)
+            pronunciations.append(
+                extracted[0] if len(extracted) == 1 else extracted
+            )
+            print(f"{word} OK")
+            sleep(2)
+
+        print(f"\nshowing: {self._selected_search_type}\n")
+        return pronunciations

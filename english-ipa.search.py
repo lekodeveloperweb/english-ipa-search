@@ -6,5 +6,11 @@ service = WordReferences(prompt_input)
 service.print_option()
 prompt_input = input()
 pronunciations = service.extract_pronunciation(prompt_input)
+# print(pronunciations)
 for pron in pronunciations:
-    print(f"{pron.type_pronun} {pron.pronounce}")
+    if type(pron) == list:
+        print(
+            f"WORD: {pron[1].word}\nTYPE: {pron[1].type_pronun}\n\n{pron[1].pronounce}\n")
+    else:
+        print(
+            f"WORD: {pron.word}\nTYPE: {pron.type_pronun}\n\n{pron.pronounce}\n")
