@@ -20,8 +20,9 @@ class WordReferences:
 
         self._words = []
         for w in words.split(" "):
-            if trim(w) != None:
-                self._words.append(w)
+            w = trim(w)
+            if w != None:
+                self._words.append(w.lower().strip())
 
     def get_search_types(self):
         return {
@@ -106,9 +107,11 @@ class WordReferences:
     def _extract_definition(self):
         term = self.html.find("h3", class_="headerWord")
         isp = self.html.find("div", class_="pwrapper")
+        if isp == None:
+            return [PronunciationModel(f"({term.text})", term.text)]
         tag_pron = isp.find("span", class_="pronWR")
         if tag_pron is None:
-            return "(No UK ISP)"
+            return [PronunciationModel(f"({term.text})", term.text)]
         pronun_values = tag_pron.text
         indexs = find(pronun_values, "/")
 
@@ -142,7 +145,7 @@ class WordReferences:
 
         self._selected_search_type = self.get_search_types()[search_type]
 
-        print("extracting, please wait...")
+        print("extracting, please wait...\n")
         if len(self._words) == "1":
             print(f"\nshowing: {self._selected_search_type}\n")
             return self._extract_single_word(self._words[0])
