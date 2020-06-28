@@ -2,6 +2,10 @@ from word_references import WordReferences
 from csv import DictReader
 
 
+export_result = False
+pronunciation_list = []
+
+
 def read_from_word_or_sentence(word=None):
     if word != None:
         word = word.strip()
@@ -24,11 +28,12 @@ def read_from_word_or_sentence(word=None):
             pronunciation += f"{pron.pronounce} "
             print(
                 f"WORD: {pron.word}\nTYPE: {pron.type_pronun}\nPRONOUNCE: {pron.pronounce}\n")
-
+    if export_result:
+        pronunciation_list.append(pronunciation)
     print(f"{pronunciation}\n")
 
 
-def read_from_csv_file(path, dict_key, start=0, end=None, delimiter="\t"):
+def read_from_csv_file(path, dict_key, start=0, end=None, delimiter=","):
     with open(path, newline="") as csvFile:
         wordReader = DictReader(csvFile, delimiter=delimiter)
         rows = list(wordReader)
@@ -55,8 +60,17 @@ else:
     if start == '':
         start = 1
     end = input("Read at... (index of end row. Default None): ")
-    delimiter = input("Delimiter... (Default \\t): ")
+    delimiter = input("Delimiter... (Default \\,): ")
     print()
     if delimiter == '':
-        delimiter = '\t'
+        delimiter = ','
+    response = input("Export result? [y/N]: ")
+    if response.lower() == 'y':
+        export_result = True
+
     read_from_csv_file(path, dict_key, int(start), int(end), delimiter)
+    if export_result:
+        with open('data/export_result.txt', mode="w") as fileResult:
+            for pronounce in pronunciation_list:
+                fileResult.write(f"{pronounce}\n")
+        print("result exported with success!!! [data/export_result.txt]")
