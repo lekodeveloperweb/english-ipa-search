@@ -82,7 +82,7 @@ else:
         path,
         dict_key,
         int(start),
-        end if end != None else int(end),
+        int(end) if end != None else None,
         delimiter
     )
     if export_result:

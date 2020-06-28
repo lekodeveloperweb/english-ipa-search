@@ -90,17 +90,23 @@ class WordReferences:
         return pronunciation
 
     def _extract_types(self, text, term):
-        if "strong" not in text:
+        print(text)
+        if "strong" not in text and "noun" not in text:
             return [PronunciationModel(
                 self._extract_only_ipa_pronunciation(text), term
             )]
         text_split = text.split(",")
+        print(text_split)
         pronounces = []
         for word in text_split:
             splits = word.split(":")
-            w_type = splits[0].strip()
-            w_pron = self._extract_only_ipa_pronunciation(splits[1].strip())
-            pronounces.append(PronunciationModel(w_pron, term, w_type))
+            print(splits)
+            if len(splits) > 1:
+                w_type = splits[0].strip()
+                if not w_type.startswith("'"):
+                    w_pron = self._extract_only_ipa_pronunciation(
+                        splits[1].strip())
+                    pronounces.append(PronunciationModel(w_pron, term, w_type))
 
         return pronounces
 
@@ -119,7 +125,9 @@ class WordReferences:
             print("Pronunciation ISP not found")
             exit()
         # 36 length to phrase "UK and possibly other pronunciations"
-        return self._extract_types(pronun_values[36:], term.text)
+        if pronun_values.startswith("UK and"):
+            return self._extract_types(pronun_values[36:], term.text)
+        return self._extract_types(pronun_values, term.text)
 
     def _extract_by_type(self):
         function = self._get_function_by_type(self._selected_search_type)
