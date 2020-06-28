@@ -61,10 +61,10 @@ else:
         start = 1
     end = input("Read at... (index of end row. Default None): ")
     delimiter = input("Delimiter... (Default \\,): ")
-    print()
     if delimiter == '':
         delimiter = ','
     response = input("Export result? [y/N]: ")
+    print()
     if response.lower() == 'y':
         export_result = True
 
@@ -73,4 +73,4 @@ else:
         with open('data/export_result.txt', mode="w") as fileResult:
             for pronounce in pronunciation_list:
                 fileResult.write(f"{pronounce}\n")
-        print("result exported with success!!! [data/export_result.txt]")
+        print("\nresult exported with success!!! [data/export_result.txt]\n")
