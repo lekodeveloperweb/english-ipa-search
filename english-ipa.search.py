@@ -61,22 +61,30 @@ if response == "1":
 else:
     path = input("Write path to csv/tsv file: ")
     dict_key = input("What is the dic key? ")
-    start = input("Start read from...(index of row. Default 1): ")
+    start = input("Start read from...(index of row. Default 0): ")
     if start == '':
-        start = 1
+        start = 0
     end = input("Read at... (index of end row. Default None): ")
+    if end == '':
+        end = None
     delimiter = input("Delimiter... (Default \\,): ")
     if delimiter == '':
         delimiter = ','
     response = input("Export result? [y/N]: ")
     if response.lower() == 'y':
         export_result = True
-    result = input("Debug mode? (Show results on console) [Y/n]")
+    result = input("Debug mode? (Show results on console) [Y/n]: ")
     if result.lower() == 'n':
         debug_mode = False
     print()
 
-    read_from_csv_file(path, dict_key, int(start), int(end), delimiter)
+    read_from_csv_file(
+        path,
+        dict_key,
+        int(start),
+        end if end != None else int(end),
+        delimiter
+    )
     if export_result:
         with open('data/export_result.txt', mode="w") as fileResult:
             for pronounce in pronunciation_list:
