@@ -157,7 +157,7 @@ class WordReferences:
                 extracted[0] if len(extracted) == 1 else extracted
             )
             print(f"{word} OK")
-            sleep(2)
+            sleep(3)
 
         print(f"\nshowing: {self._selected_search_type}\n")
         return pronunciations

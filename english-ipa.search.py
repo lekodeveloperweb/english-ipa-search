@@ -4,6 +4,7 @@ from csv import DictReader
 
 export_result = False
 pronunciation_list = []
+debug_mode = True
 
 
 def read_from_word_or_sentence(word=None):
@@ -22,15 +23,19 @@ def read_from_word_or_sentence(word=None):
     for pron in pronunciations:
         if type(pron) == list:
             pronunciation += f"{pron[1].pronounce} "
-            print(
-                f"WORD: {pron[1].word}\nTYPE: {pron[1].type_pronun}\nPRONOUNCE: {pron[1].pronounce}\n")
+            if debug_mode:
+                print(
+                    f"WORD: {pron[1].word}\nTYPE: {pron[1].type_pronun}\nPRONOUNCE: {pron[1].pronounce}\n")
         else:
             pronunciation += f"{pron.pronounce} "
-            print(
-                f"WORD: {pron.word}\nTYPE: {pron.type_pronun}\nPRONOUNCE: {pron.pronounce}\n")
+            if debug_mode:
+                print(
+                    f"WORD: {pron.word}\nTYPE: {pron.type_pronun}\nPRONOUNCE: {pron.pronounce}\n")
     if export_result:
         pronunciation_list.append(pronunciation)
-    print(f"{pronunciation}\n")
+
+    if debug_mode:
+        print(f"{pronunciation}\n")
 
 
 def read_from_csv_file(path, dict_key, start=0, end=None, delimiter=","):
@@ -64,9 +69,12 @@ else:
     if delimiter == '':
         delimiter = ','
     response = input("Export result? [y/N]: ")
-    print()
     if response.lower() == 'y':
         export_result = True
+    result = input("Debug mode? (Show results on console) [Y/n]")
+    if result.lower() == 'n':
+        debug_mode = False
+    print()
 
     read_from_csv_file(path, dict_key, int(start), int(end), delimiter)
     if export_result:
