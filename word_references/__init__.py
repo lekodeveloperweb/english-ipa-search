@@ -19,6 +19,7 @@ class WordReferences:
             raise AttributeError("Property [words] is required")
 
         self._words = []
+        words = trim(words)
         for w in words.split(" "):
             w = trim(w)
             if w != None:
