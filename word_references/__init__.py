@@ -90,17 +90,14 @@ class WordReferences:
         return pronunciation
 
     def _extract_types(self, text, term):
-        print(text)
         if "strong" not in text and "noun" not in text:
             return [PronunciationModel(
                 self._extract_only_ipa_pronunciation(text), term
             )]
         text_split = text.split(",")
-        print(text_split)
         pronounces = []
         for word in text_split:
             splits = word.split(":")
-            print(splits)
             if len(splits) > 1:
                 w_type = splits[0].strip()
                 if not w_type.startswith("'"):
