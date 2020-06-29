@@ -1,5 +1,6 @@
 from word_references import WordReferences
 from csv import DictReader
+from clipboard import copy
 
 
 export_result = False
@@ -31,8 +32,12 @@ def read_from_word_or_sentence(word=None):
             if debug_mode:
                 print(
                     f"WORD: {pron.word}\nTYPE: {pron.type_pronun}\nPRONOUNCE: {pron.pronounce}\n")
+
     if export_result:
         pronunciation_list.append(pronunciation)
+    else:
+        copy(pronunciation)
+        print("copied to clipboard!")
 
     if debug_mode:
         print(f"{pronunciation}\n")
@@ -59,21 +64,21 @@ print()
 if response == "1":
     read_from_word_or_sentence()
 else:
-    path = input("Write path to csv/tsv file: ")
-    dict_key = input("What is the dic key? ")
-    start = input("Start read from...(index of row. Default 0): ")
+    path = input("Write path to csv/tsv file: ").strip()
+    dict_key = input("What is the dic key? ").strip()
+    start = input("Start read from...(index of row. Default 0): ").strip()
     if start == '':
         start = 0
-    end = input("Read at... (index of end row. Default None): ")
+    end = input("Read at... (index of end row. Default None): ").strip()
     if end == '':
         end = None
-    delimiter = input("Delimiter... (Default \\,): ")
+    delimiter = input("Delimiter... (Default \\,): ").strip()
     if delimiter == '':
         delimiter = ','
-    response = input("Export result? [y/N]: ")
+    response = input("Export result? [y/N]: ").strip()
     if response.lower() == 'y':
         export_result = True
-    result = input("Debug mode? (Show results on console) [Y/n]: ")
+    result = input("Debug mode? (Show results on console) [Y/n]: ").strip()
     if result.lower() == 'n':
         debug_mode = False
     print()
@@ -85,6 +90,7 @@ else:
         int(end) if end != None else None,
         delimiter
     )
+
     if export_result:
         with open('data/export_result.txt', mode="w") as fileResult:
             for pronounce in pronunciation_list:
