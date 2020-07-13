@@ -15,7 +15,7 @@ def read_from_word_or_sentence(word=None):
     if prompt_input == None:
         prompt_input = input("Enter key for search: \n")
     service = WordReferences(prompt_input)
-    prompt_input = 1
+    prompt_input = "1"
     if word == None:
         service.print_option()
         prompt_input = input()

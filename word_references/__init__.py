@@ -15,15 +15,16 @@ WORD_REFERENCE_CONJUG = f"{WORD_REFERENCE}conj/enverbs.aspx?v="
 class WordReferences:
 
     def __init__(self, words, source=None):
-        if words == None or len(words) == 0:
+        if words == None or len(words) == 0 or words == " ":
             raise AttributeError("Property [words] is required")
 
+        self.source = source
         self._words = []
         words = trim(words)
         for w in words.split(" "):
-            w = trim(w)
-            if w != None:
-                self._words.append(w.lower().strip())
+            if w != None and w != "":
+                self._words.append(w.lower())
+        # print(self._words)
 
     def get_search_types(self):
         return {
@@ -62,10 +63,13 @@ class WordReferences:
 
     def set_search_type(self, search_type):
         types = self.get_search_types()
-        search = types[int(search_type)]
-        if search == None:
+        try:
+            search = types[int(search_type)]
+        except KeyError:
             print(f"invalid type {search_type}")
+            self.print_option()
             exit(1)
+
         self._selected_search_type = search
 
     def _get_content_from_web(self, url):
@@ -76,9 +80,14 @@ class WordReferences:
 
     def _create_bs4_instance(self, source):
         is_url = validate_url(source)
-        if is_url == True:
+        if is_url == True and self.source == None:
             content = self._get_content_from_web(source)
             source = content.text
+        else:
+            source = self.source
+
+        if source == None:
+            raise AttributeError("url or source required")
 
         self.html = BeautifulSoup(source, "html.parser")
 
@@ -163,7 +172,8 @@ class WordReferences:
                 extracted[0] if len(extracted) == 1 else extracted
             )
             print(f"{word} OK")
-            sleep(3)
+            if self.source == None:
+                sleep(3)
 
         print(f"\nshowing: {self._selected_search_type}\n")
         return pronunciations

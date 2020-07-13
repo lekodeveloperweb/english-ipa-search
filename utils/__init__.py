@@ -6,7 +6,7 @@ def find(s, ch):
 
 
 def trim(s):
-    return re.sub(r"[^a-zA-Z0-9']", " ", s.replace("’", "'"))
+    return re.sub(r"[^a-zA-Z0-9']", " ", s.replace("’", "'")).strip()
 
 
 def validate_url(source):
